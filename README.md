@@ -1,24 +1,26 @@
 # RightPick Predict
 
-Free-to-play, point-based prediction market & crowd forecasting prototype tailored for Hong Kong.
+Free-to-play, points-based Hong Kong prediction market (Expo / React Native web).
 
-Virtual points only — no real-money gambling. Accuracy rankings and crowd sentiment drive engagement.
+Virtual PTS only — no real-money gambling.
 
-## Run
+## Run locally
 
 ```bash
 npm install
 npx expo start
 ```
 
-Then press `w` for web, `i` for iOS simulator, or `a` for Android.
+Press `w` for web, `i` for iOS, or `a` for Android.
 
-## Features
+## Deploy (Render)
 
-- Sticky profile header with live PTS balance and rank badge
-- Category chip filters (Weather, Transit, Economy, Local Life)
-- Featured typhoon T8 market with dual YES/NO probability bar
-- Bottom-sheet prediction modal with stake slider (10–500 PTS)
-- Trending HK markets feed
-- Accuracy leaderboard with local badges
-- Propose-a-topic community banner
+```bash
+npm run build:web
+```
+
+Static publish directory: `dist` (see `render.yaml`).
+
+## Stack
+
+Single-file app: `App.tsx` · Expo 57 · AsyncStorage persistence · EN / 繁體中文
