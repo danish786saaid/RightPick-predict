@@ -22,6 +22,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaProvider, SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar as ExpoStatusBar } from 'expo-status-bar';
 
@@ -55,7 +56,7 @@ const C = {
   noDim: 'rgba(244,63,94,0.15)',
   noBorder: '#F43F5E',
   noBar: 'rgba(244,63,94,0.68)',
-  overlay: 'rgba(6,4,14,0.86)',
+  overlay: 'rgba(8,6,18,0.82)',
   white: '#FFFFFF',
 } as const;
 
@@ -67,7 +68,7 @@ const noSelect =
 /* ═══════════════════════ Types ═══════════════════════ */
 
 type Lang = 'en' | 'zh';
-type CategoryId = 'all' | 'weather' | 'transit' | 'economy' | 'local';
+type CategoryId = 'all' | 'weather' | 'transit' | 'economy' | 'local' | 'fun';
 type Side = 'YES' | 'NO';
 type Tab = 'markets' | 'bets' | 'leaderboard';
 type LeaderboardSort = 'accuracy' | 'points';
@@ -145,6 +146,7 @@ const T = {
     transit: 'Transit',
     economy: 'Economy',
     local: 'Local Life',
+    fun: 'Fun',
     featured: 'POPULAR',
     trending: 'Trending Markets',
     open: 'open',
@@ -153,6 +155,7 @@ const T = {
     predictors: 'predictors',
     ptsStaked: 'PTS staked',
     youPredicted: 'You predicted',
+    stackedBets: 'active stakes',
     with: 'with',
     bullish: 'Bullish',
     bearish: 'Bearish',
@@ -172,6 +175,7 @@ const T = {
     resolveHint: 'Demo control — settle this market as YES or NO wins.',
     simYes: 'Simulate YES Win',
     simNo: 'Simulate NO Win',
+    marketResolved: 'Market Resolved!',
     rankings: 'Local Rankings',
     rankingsSub: 'Rankings based on total accumulated PTS.',
     rankingsSubAcc: 'Rankings based on prediction accuracy rate.',
@@ -202,6 +206,13 @@ const T = {
     credited: 'credited to your balance',
     langToggle: 'EN / 中文',
     acc: 'Acc',
+    redeem: '🎁 Redeem',
+    shopTitle: 'Rewards Shop',
+    shopSub: 'Redeem PTS for local perks (demo).',
+    redeemBtn: 'Redeem',
+    redeemed: 'Redeemed!',
+    notEnoughPts: 'Not enough PTS',
+    maxPreset: 'MAX',
   },
   zh: {
     brand: 'RightPick',
@@ -215,6 +226,7 @@ const T = {
     transit: '交通',
     economy: '經濟',
     local: '本地社區',
+    fun: '趣味',
     featured: '熱門',
     trending: '熱門市場',
     open: '個開放中',
@@ -223,6 +235,7 @@ const T = {
     predictors: '位預測者',
     ptsStaked: 'PTS 已押注',
     youPredicted: '你已預測',
+    stackedBets: '筆進行中押注',
     with: '押注',
     bullish: '看漲',
     bearish: '看跌',
@@ -242,6 +255,7 @@ const T = {
     resolveHint: '示範控制 — 將此市場結算為 YES 或 NO 勝出。',
     simYes: '模擬 YES 勝出',
     simNo: '模擬 NO 勝出',
+    marketResolved: '市場已結算！',
     rankings: '本地排行榜',
     rankingsSub: '排名按累積 PTS 總額計算。',
     rankingsSubAcc: '排名按預測準確率計算。',
@@ -272,6 +286,13 @@ const T = {
     credited: '已存入餘額',
     langToggle: 'EN / 中文',
     acc: '準確率',
+    redeem: '🎁 兌換',
+    shopTitle: '獎勵商店',
+    shopSub: '用 PTS 兌換本地福利（示範）。',
+    redeemBtn: '兌換',
+    redeemed: '兌換成功！',
+    notEnoughPts: 'PTS 不足',
+    maxPreset: 'MAX',
   },
 } as const;
 
@@ -395,6 +416,64 @@ const INITIAL_MARKETS: Market[] = [
     yesPct: 29,
     yesOdds: 3.1,
     noOdds: 1.4,
+  },
+  {
+    id: 'fun-milk-tea',
+    category: 'fun',
+    emoji: '🧋',
+    titleEn:
+      'Will milk tea prices at local cha chaan tengs cross $30 this year?',
+    titleZh: '今年本地茶餐廳奶茶會否突破 $30？',
+    endsInEn: '120 days',
+    endsInZh: '120 天',
+    participants: 2860,
+    ptsStaked: 61400,
+    yesPct: 73,
+    yesOdds: 1.35,
+    noOdds: 3.0,
+  },
+  {
+    id: 'fun-boar',
+    category: 'fun',
+    emoji: '🐗',
+    titleEn: 'Will a wild boar be spotted near a MTR entrance this week?',
+    titleZh: '本週會否有野豬在港鐵站入口附近出沒？',
+    endsInEn: '6 days',
+    endsInZh: '6 天',
+    participants: 1942,
+    ptsStaked: 42800,
+    yesPct: 44,
+    yesOdds: 2.1,
+    noOdds: 1.7,
+  },
+  {
+    id: 'fun-library',
+    category: 'fun',
+    emoji: '📚',
+    titleEn: 'Will library seats be 100% full before 8:30 AM tomorrow?',
+    titleZh: '明日早上 8:30 前圖書館座位會否全滿？',
+    endsInEn: '1 day',
+    endsInZh: '1 天',
+    participants: 3210,
+    ptsStaked: 55200,
+    yesPct: 81,
+    yesOdds: 1.2,
+    noOdds: 4.0,
+  },
+  {
+    id: 'fun-octopus',
+    category: 'fun',
+    emoji: '🐙',
+    titleEn:
+      'Will someone queue 30+ minutes for a new bubble-tea drop in Central?',
+    titleZh: '中環新出爐手搖飲會否有人排隊超過 30 分鐘？',
+    endsInEn: '5 days',
+    endsInZh: '5 天',
+    participants: 1675,
+    ptsStaked: 28900,
+    yesPct: 66,
+    yesOdds: 1.45,
+    noOdds: 2.6,
   },
 ];
 
@@ -539,9 +618,48 @@ const BOT_LEADERS: Leader[] = [
   },
 ];
 
-const STAKE_PRESETS = [50, 100, 250, 500];
+const STAKE_PRESETS = [100, 500, 1000, 2500] as const;
 const MIN_STAKE = 10;
-const MAX_STAKE = 500;
+const MAX_STAKE = 5000;
+
+type RewardItem = {
+  id: string;
+  emoji: string;
+  titleEn: string;
+  titleZh: string;
+  cost: number;
+};
+
+const REWARDS: RewardItem[] = [
+  {
+    id: 'coffee-10',
+    emoji: '☕',
+    titleEn: '$10 Coffee Coupon',
+    titleZh: '$10 咖啡券',
+    cost: 1000,
+  },
+  {
+    id: 'super-20',
+    emoji: '🛒',
+    titleEn: 'HKD $20 Supermarket Coupon',
+    titleZh: '港幣 $20 超市現金券',
+    cost: 2000,
+  },
+  {
+    id: 'campus-pass',
+    emoji: '🎓',
+    titleEn: 'Campus Perk Pass',
+    titleZh: '校園福利通行證',
+    cost: 5000,
+  },
+  {
+    id: 'tram-day',
+    emoji: '🚋',
+    titleEn: 'Tram Day Pass Voucher',
+    titleZh: '電車全日通兌換券',
+    cost: 800,
+  },
+];
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-HK');
 
@@ -555,6 +673,14 @@ function calcAccuracy(predictions: UserPrediction[]) {
 
 function activeStakeFor(preds: UserPrediction[], marketId: string) {
   return preds.find((p) => p.marketId === marketId && p.status === 'ACTIVE');
+}
+
+function activeStakesFor(preds: UserPrediction[], marketId: string) {
+  return preds.filter((p) => p.marketId === marketId && p.status === 'ACTIVE');
+}
+
+function totalActiveStake(preds: UserPrediction[], marketId: string) {
+  return activeStakesFor(preds, marketId).reduce((s, p) => s + p.stake, 0);
 }
 
 function defaultAccount(): AccountData {
@@ -738,6 +864,7 @@ function RightPickApp() {
     useState<LeaderboardSort>('accuracy');
   const [toast, setToast] = useState<string | null>(null);
   const [accountOpen, setAccountOpen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
   const [loginName, setLoginName] = useState('');
 
   const [modalMarket, setModalMarket] = useState<Market | null>(null);
@@ -748,6 +875,7 @@ function RightPickApp() {
   const slidingRef = useRef(false);
   const backdropOrigin = useRef<{ x: number; y: number } | null>(null);
   const persistReady = useRef(false);
+  const marketsScrollRef = useRef<ScrollView>(null);
 
   const t: Dict = T[lang];
   const account = accounts[currentUser] ?? defaultAccount();
@@ -875,13 +1003,13 @@ function RightPickApp() {
     { id: 'weather' as const, emoji: '🌧️', label: t.weather },
     { id: 'economy' as const, emoji: '📊', label: t.economy },
     { id: 'local' as const, emoji: '🛍️', label: t.local },
+    { id: 'fun' as const, emoji: '🤪', label: t.fun },
   ];
 
   const availableForModal = useMemo(() => {
     if (!modalMarket) return points;
-    const existing = activeStakeFor(predictions, modalMarket.id);
-    return points + (existing?.stake ?? 0);
-  }, [modalMarket, points, predictions]);
+    return points;
+  }, [modalMarket, points]);
 
   const maxStake = Math.min(MAX_STAKE, Math.max(0, availableForModal));
   const canStake = maxStake >= MIN_STAKE;
@@ -897,9 +1025,7 @@ function RightPickApp() {
     setModalMarket(market);
     setModalSide(side);
     setAttempted(false);
-    const existing = activeStakeFor(predictions, market.id);
-    const available = points + (existing?.stake ?? 0);
-    const max = Math.min(MAX_STAKE, Math.max(0, available));
+    const max = Math.min(MAX_STAKE, Math.max(0, points));
     setStake(Math.min(100, Math.max(MIN_STAKE, max || MIN_STAKE)));
   };
 
@@ -911,11 +1037,10 @@ function RightPickApp() {
   const confirmStake = () => {
     setAttempted(true);
     if (!modalMarket || insufficient) return;
-    const existing = activeStakeFor(predictions, modalMarket.id);
-    const refund = existing?.stake ?? 0;
+    const hadActive = activeStakesFor(predictions, modalMarket.id).length > 0;
     const payout = Math.round(stake * odds);
     const entry: UserPrediction = {
-      id: `pred-${Date.now()}`,
+      id: `pred-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       marketId: modalMarket.id,
       titleEn: modalMarket.titleEn,
       titleZh: modalMarket.titleZh,
@@ -931,13 +1056,8 @@ function RightPickApp() {
     };
 
     patchAccount((prev) => ({
-      points: prev.points + refund - stake,
-      predictions: [
-        entry,
-        ...prev.predictions.filter(
-          (p) => !(p.marketId === modalMarket.id && p.status === 'ACTIVE'),
-        ),
-      ],
+      points: prev.points - stake,
+      predictions: [entry, ...prev.predictions],
     }));
 
     setMarkets((prev) =>
@@ -946,8 +1066,8 @@ function RightPickApp() {
           ? m
           : {
               ...m,
-              participants: m.participants + (existing ? 0 : 1),
-              ptsStaked: m.ptsStaked + (stake - refund),
+              participants: m.participants + (hadActive ? 0 : 1),
+              ptsStaked: m.ptsStaked + stake,
             },
       ),
     );
@@ -979,13 +1099,33 @@ function RightPickApp() {
           : p,
       ),
     }));
-    setBetsSegment('settled');
     setToast(
       won
-        ? `${t.win}! +${fmt(pnl)} ${t.pts} ${t.credited}`
-        : `${t.loss} · −${fmt(pred.stake)} ${t.pts}`,
+        ? `${t.marketResolved} +${fmt(payout)} ${t.pts} ${t.credited}`
+        : `${t.marketResolved} ${t.loss} · −${fmt(pred.stake)} ${t.pts}`,
     );
   };
+
+  const redeemReward = (item: RewardItem) => {
+    if (points < item.cost) {
+      setToast(t.notEnoughPts);
+      return;
+    }
+    const title = lang === 'zh' ? item.titleZh : item.titleEn;
+    patchAccount((prev) => ({
+      ...prev,
+      points: prev.points - item.cost,
+    }));
+    setToast(`${t.redeemed} ${item.emoji} ${title} · −${fmt(item.cost)} ${t.pts}`);
+  };
+
+  const goToMarketsHome = useCallback(() => {
+    setActiveTab('markets');
+    setFilter('all');
+    setTimeout(() => {
+      marketsScrollRef.current?.scrollTo({ y: 0, animated: true });
+    }, 50);
+  }, []);
 
   const switchAccount = () => {
     const name = loginName.trim() || DEFAULT_USER;
@@ -1002,15 +1142,22 @@ function RightPickApp() {
     setCurrentUser(name);
     setAccountOpen(false);
     setLoginName('');
-    setActiveTab('markets');
+    goToMarketsHome();
     setToast(`${t.account}: ${name}`);
   };
 
   if (!hydrated) {
     return (
-      <View style={styles.boot}>
-        <ActivityIndicator color={C.violet} size="large" />
-      </View>
+      <LinearGradient
+        colors={['#09070F', '#130B24', '#1E1035']}
+        start={{ x: 0.5, y: 0 }}
+        end={{ x: 0.5, y: 1 }}
+        style={styles.rootGradient}
+      >
+        <View style={styles.boot}>
+          <ActivityIndicator color={C.violet} size="large" />
+        </View>
+      </LinearGradient>
     );
   }
 
@@ -1020,7 +1167,7 @@ function RightPickApp() {
       <View style={[styles.headerRow, isWide && styles.headerRowWide]}>
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => setActiveTab('markets')}
+          onPress={goToMarketsHome}
           style={styles.brandBtn}
         >
           <View style={styles.brandIcon}>
@@ -1033,6 +1180,12 @@ function RightPickApp() {
         </TouchableOpacity>
 
         <View style={styles.headerActions}>
+          <TouchableOpacity
+            onPress={() => setShopOpen(true)}
+            style={styles.redeemBtn}
+          >
+            <Text style={styles.redeemBtnText}>{t.redeem}</Text>
+          </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setLang((l) => (l === 'en' ? 'zh' : 'en'))}
             style={styles.langBtn}
@@ -1091,6 +1244,7 @@ function RightPickApp() {
   /* ── Markets ── */
   const renderMarkets = () => (
     <ScrollView
+      ref={marketsScrollRef}
       style={styles.flex}
       contentContainerStyle={{ paddingBottom: 36 }}
       showsVerticalScrollIndicator={false}
@@ -1139,15 +1293,27 @@ function RightPickApp() {
             <Text style={[styles.heroTitle, isWide && { fontSize: 28 }]}>
               {titleOf(featured)}
             </Text>
-            {activeStakeFor(predictions, featured.id) ? (
-              <View style={styles.stakeBadge}>
-                <Text style={styles.stakeBadgeText}>
-                  {t.youPredicted}{' '}
-                  {activeStakeFor(predictions, featured.id)!.side} {t.with}{' '}
-                  {fmt(activeStakeFor(predictions, featured.id)!.stake)} {t.pts}
-                </Text>
-              </View>
-            ) : null}
+            {(() => {
+              const stakes = activeStakesFor(predictions, featured.id);
+              if (!stakes.length) return null;
+              const total = stakes.reduce((s, p) => s + p.stake, 0);
+              const hasNo = stakes.some((p) => p.side === 'NO');
+              return (
+                <View
+                  style={[styles.stakeBadge, hasNo && styles.stakeBadgeNo]}
+                >
+                  <Text
+                    style={[
+                      styles.stakeBadgeText,
+                      hasNo && { color: C.no },
+                    ]}
+                  >
+                    {t.youPredicted} {fmt(total)} {t.pts} · {stakes.length}{' '}
+                    {t.stackedBets}
+                  </Text>
+                </View>
+              );
+            })()}
             <Text style={styles.meta}>
               {t.endsIn} {endsOf(featured)} · {fmt(featured.participants)}{' '}
               {t.participants} · {fmt(featured.ptsStaked)} {t.ptsStaked}
@@ -1205,7 +1371,9 @@ function RightPickApp() {
         }}
       >
         {feed.map((m) => {
-          const stakeOn = activeStakeFor(predictions, m.id);
+          const stakesOn = activeStakesFor(predictions, m.id);
+          const totalOn = totalActiveStake(predictions, m.id);
+          const hasNo = stakesOn.some((p) => p.side === 'NO');
           return (
             <View key={m.id} style={[styles.card, { width: cardWidth }]}>
               <View style={styles.cardTop}>
@@ -1219,21 +1387,21 @@ function RightPickApp() {
                 </Text>
               </View>
               <Text style={styles.cardTitle}>{titleOf(m)}</Text>
-              {stakeOn ? (
+              {stakesOn.length ? (
                 <View
                   style={[
                     styles.stakeBadge,
-                    stakeOn.side === 'NO' && styles.stakeBadgeNo,
+                    hasNo && styles.stakeBadgeNo,
                   ]}
                 >
                   <Text
                     style={[
                       styles.stakeBadgeText,
-                      stakeOn.side === 'NO' && { color: C.no },
+                      hasNo && { color: C.no },
                     ]}
                   >
-                    {t.youPredicted} {stakeOn.side} {t.with}{' '}
-                    {fmt(stakeOn.stake)} {t.pts}
+                    {t.youPredicted} {fmt(totalOn)} {t.pts} · {stakesOn.length}{' '}
+                    {t.stackedBets}
                   </Text>
                 </View>
               ) : null}
@@ -1597,7 +1765,14 @@ function RightPickApp() {
       <Modal visible transparent animationType="fade" onRequestClose={closeModal}>
         <View style={styles.modalRoot}>
           <Pressable
-            style={styles.modalBackdrop}
+            style={[
+              styles.modalBackdrop,
+              Platform.OS === 'web' &&
+                ({
+                  backdropFilter: 'blur(10px)',
+                  WebkitBackdropFilter: 'blur(10px)',
+                } as object),
+            ]}
             onPressIn={(e) => {
               if (slidingRef.current) {
                 backdropOrigin.current = null;
@@ -1670,6 +1845,35 @@ function RightPickApp() {
                   </TouchableOpacity>
                 );
               })}
+              <TouchableOpacity
+                disabled={!canStake || maxStake < MIN_STAKE}
+                onPress={() => {
+                  setStake(maxStake);
+                  setAttempted(false);
+                }}
+                style={[
+                  styles.presetBtn,
+                  stake === maxStake &&
+                    maxStake > 0 &&
+                    !STAKE_PRESETS.includes(stake as (typeof STAKE_PRESETS)[number]) &&
+                    styles.presetOn,
+                  (!canStake || maxStake < MIN_STAKE) && { opacity: 0.35 },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.presetText,
+                    stake === maxStake &&
+                      maxStake > 0 &&
+                      !STAKE_PRESETS.includes(
+                        stake as (typeof STAKE_PRESETS)[number],
+                      ) &&
+                      styles.presetTextOn,
+                  ]}
+                >
+                  {t.maxPreset}
+                </Text>
+              </TouchableOpacity>
             </View>
             {canStake ? (
               <StakeSlider
@@ -1732,7 +1936,14 @@ function RightPickApp() {
     >
       <View style={styles.modalRoot}>
         <Pressable
-          style={styles.modalBackdrop}
+          style={[
+            styles.modalBackdrop,
+            Platform.OS === 'web' &&
+              ({
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+              } as object),
+          ]}
           onPress={() => setAccountOpen(false)}
         />
         <View style={[styles.modalCard, { width: Math.min(width * 0.9, 400) }]}>
@@ -1785,66 +1996,152 @@ function RightPickApp() {
     </Modal>
   );
 
-  return (
-    <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
-      <ExpoStatusBar style="light" />
-      <StatusBar barStyle="light-content" />
-      <View style={styles.shell}>
-        {renderHeader()}
-        <View style={styles.flex}>
-          {activeTab === 'markets'
-            ? renderMarkets()
-            : activeTab === 'bets'
-              ? renderBets()
-              : renderLeaderboard()}
-        </View>
-        <View
+  /* ── Rewards shop ── */
+  const renderShopModal = () => (
+    <Modal
+      visible={shopOpen}
+      transparent
+      animationType="fade"
+      onRequestClose={() => setShopOpen(false)}
+    >
+      <View style={styles.modalRoot}>
+        <Pressable
           style={[
-            styles.tabBar,
-            {
-              marginBottom: 16 + Math.max(insets.bottom, 0),
-              maxWidth: Math.min(width - 40, 520),
-              width: width - 40,
-              alignSelf: 'center',
-              ...(Platform.OS === 'web'
-                ? ({
-                    backdropFilter: 'blur(18px)',
-                    WebkitBackdropFilter: 'blur(18px)',
-                  } as object)
-                : {}),
-            },
+            styles.modalBackdrop,
+            Platform.OS === 'web' &&
+              ({
+                backdropFilter: 'blur(10px)',
+                WebkitBackdropFilter: 'blur(10px)',
+              } as object),
           ]}
-        >
-          {(
-            [
-              ['markets', '📈', t.markets],
-              ['bets', '📊', t.myBets],
-              ['leaderboard', '🏆', t.leaderboard],
-            ] as const
-          ).map(([id, emoji, label]) => {
-            const on = activeTab === id;
-            return (
-              <TouchableOpacity
-                key={id}
-                onPress={() => setActiveTab(id)}
-                activeOpacity={0.85}
-                style={[styles.tab, on && styles.tabOn]}
-              >
-                <Text style={[styles.tabIcon, on && styles.tabIconOn]}>
-                  {emoji}
-                </Text>
-                <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>
-                  {label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+          onPress={() => setShopOpen(false)}
+        />
+        <View style={[styles.modalCard, { width: Math.min(width * 0.92, 440) }]}>
+          <Text style={styles.accountModalTitle}>{t.shopTitle}</Text>
+          <Text style={[styles.meta, { textAlign: 'center', marginBottom: 4 }]}>
+            {t.shopSub}
+          </Text>
+          <Text style={styles.shopBalance}>
+            {fmt(points)} {t.pts}
+          </Text>
+          <ScrollView
+            style={{ width: '100%', maxHeight: 360 }}
+            showsVerticalScrollIndicator={false}
+          >
+            {REWARDS.map((item) => {
+              const title = lang === 'zh' ? item.titleZh : item.titleEn;
+              const canAfford = points >= item.cost;
+              return (
+                <View key={item.id} style={styles.rewardRow}>
+                  <Text style={styles.rewardEmoji}>{item.emoji}</Text>
+                  <View style={{ flex: 1, gap: 2 }}>
+                    <Text style={styles.rewardTitle}>{title}</Text>
+                    <Text style={styles.rewardCost}>
+                      {fmt(item.cost)} {t.pts}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    onPress={() => redeemReward(item)}
+                    style={[
+                      styles.rewardAction,
+                      !canAfford && styles.rewardActionDisabled,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.rewardActionText,
+                        !canAfford && { color: C.mutedSoft },
+                      ]}
+                    >
+                      {t.redeemBtn}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
+          </ScrollView>
+          <TouchableOpacity
+            onPress={() => setShopOpen(false)}
+            style={{ paddingVertical: 10 }}
+          >
+            <Text style={styles.accountCloseText}>{t.close}</Text>
+          </TouchableOpacity>
         </View>
       </View>
-      {renderStakeModal()}
-      {renderAccountModal()}
-      <Toast message={toast} onHide={() => setToast(null)} />
-    </SafeAreaView>
+    </Modal>
+  );
+
+  return (
+    <LinearGradient
+      colors={['#09070F', '#130B24', '#1E1035']}
+      start={{ x: 0.5, y: 0 }}
+      end={{ x: 0.5, y: 1 }}
+      style={styles.rootGradient}
+    >
+      <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
+        <ExpoStatusBar style="light" />
+        <StatusBar barStyle="light-content" />
+        <View style={styles.shell}>
+          {renderHeader()}
+          <View style={styles.flex}>
+            {activeTab === 'markets'
+              ? renderMarkets()
+              : activeTab === 'bets'
+                ? renderBets()
+                : renderLeaderboard()}
+          </View>
+          <View
+            style={[
+              styles.tabBar,
+              {
+                marginBottom: 16 + Math.max(insets.bottom, 0),
+                maxWidth: Math.min(width - 40, 520),
+                width: width - 40,
+                alignSelf: 'center',
+                ...(Platform.OS === 'web'
+                  ? ({
+                      backdropFilter: 'blur(18px)',
+                      WebkitBackdropFilter: 'blur(18px)',
+                    } as object)
+                  : {}),
+              },
+            ]}
+          >
+            {(
+              [
+                ['markets', '📈', t.markets],
+                ['bets', '📊', t.myBets],
+                ['leaderboard', '🏆', t.leaderboard],
+              ] as const
+            ).map(([id, emoji, label]) => {
+              const on = activeTab === id;
+              return (
+                <TouchableOpacity
+                  key={id}
+                  onPress={() => {
+                    if (id === 'markets') goToMarketsHome();
+                    else setActiveTab(id);
+                  }}
+                  activeOpacity={0.85}
+                  style={[styles.tab, on && styles.tabOn]}
+                >
+                  <Text style={[styles.tabIcon, on && styles.tabIconOn]}>
+                    {emoji}
+                  </Text>
+                  <Text style={[styles.tabLabel, on && styles.tabLabelOn]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+        {renderStakeModal()}
+        {renderAccountModal()}
+        {renderShopModal()}
+        <Toast message={toast} onHide={() => setToast(null)} />
+      </SafeAreaView>
+    </LinearGradient>
   );
 }
 
@@ -1859,15 +2156,20 @@ export default function App() {
 /* ═══════════════════════ Styles ═══════════════════════ */
 
 const styles = StyleSheet.create({
+  rootGradient: {
+    flex: 1,
+    width: '100%',
+    minHeight: '100%',
+  },
   boot: {
     flex: 1,
-    backgroundColor: C.bg,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
   },
   safe: {
     flex: 1,
-    backgroundColor: C.bg,
+    backgroundColor: 'transparent',
     alignItems: 'center',
     ...noSelect,
   },
@@ -1876,9 +2178,9 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 1000,
     alignSelf: 'center',
-    backgroundColor: C.bg,
+    backgroundColor: 'transparent',
   },
-  flex: { flex: 1 },
+  flex: { flex: 1, backgroundColor: 'transparent' },
   header: {
     paddingTop: 8,
     paddingBottom: 14,
@@ -1917,6 +2219,15 @@ const styles = StyleSheet.create({
     marginTop: 1,
   },
   headerActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  redeemBtn: {
+    backgroundColor: C.violetDim,
+    borderWidth: 1,
+    borderColor: C.violetHot,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  redeemBtnText: { color: C.white, fontWeight: '800', fontSize: 12 },
   langBtn: {
     backgroundColor: C.surfaceAlt,
     borderWidth: 1,
@@ -2416,21 +2727,22 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     left: 0,
-    backgroundColor: C.overlay,
+    backgroundColor: 'rgba(8, 6, 18, 0.82)',
   },
   modalCard: {
     backgroundColor: '#120F25',
     borderRadius: 22,
     borderWidth: 1.5,
-    borderColor: 'rgba(138,92,246,0.2)',
+    borderColor: 'rgba(138,92,246,0.28)',
     padding: 22,
     alignItems: 'center',
     gap: 9,
     zIndex: 2,
-    shadowColor: '#000',
-    shadowOpacity: 0.45,
-    shadowRadius: 24,
+    shadowColor: '#8B5CF6',
+    shadowOpacity: 0.35,
+    shadowRadius: 20,
     shadowOffset: { width: 0, height: 10 },
+    elevation: 15,
   },
   closeX: {
     position: 'absolute',
@@ -2619,6 +2931,49 @@ const styles = StyleSheet.create({
     color: '#CBD5E1',
     fontSize: 15,
     fontWeight: '600',
+  },
+  shopBalance: {
+    color: C.violet,
+    fontWeight: '800',
+    fontSize: 18,
+    marginBottom: 8,
+  },
+  rewardRow: {
+    width: '100%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: '#1C1733',
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: 'rgba(138,92,246,0.2)',
+    padding: 12,
+    marginBottom: 10,
+  },
+  rewardEmoji: { fontSize: 26 },
+  rewardTitle: {
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 14,
+  },
+  rewardCost: {
+    color: C.label,
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  rewardAction: {
+    backgroundColor: C.violetHot,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  rewardActionDisabled: {
+    backgroundColor: C.borderMuted,
+  },
+  rewardActionText: {
+    color: C.white,
+    fontWeight: '800',
+    fontSize: 12,
   },
   toast: {
     position: 'absolute',
