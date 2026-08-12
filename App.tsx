@@ -65,6 +65,14 @@ const noSelect =
     ? ({ userSelect: 'none', WebkitUserSelect: 'none' } as const)
     : {};
 
+const cjkFont =
+  Platform.OS === 'web'
+    ? ({
+        fontFamily:
+          'Platform, -apple-system, "PingFang HK", "Microsoft JhengHei", sans-serif',
+      } as const)
+    : {};
+
 /* ═══════════════════════ Types ═══════════════════════ */
 
 type Lang = 'en' | 'zh';
@@ -81,8 +89,7 @@ type Market = {
   emoji: string;
   titleEn: string;
   titleZh: string;
-  endsInEn: string;
-  endsInZh: string;
+  endsAt: string;
   participants: number;
   ptsStaked: number;
   yesPct: number;
@@ -97,8 +104,7 @@ type UserPrediction = {
   titleEn: string;
   titleZh: string;
   emoji: string;
-  endsInEn: string;
-  endsInZh: string;
+  endsAt: string;
   side: Side;
   stake: number;
   odds: number;
@@ -139,7 +145,7 @@ const T = {
     balance: 'BALANCE',
     standing: 'STANDING',
     markets: 'Markets',
-    myBets: 'My Bets',
+    myBets: 'My Predictions',
     leaderboard: 'Leaderboard',
     all: 'All',
     weather: 'Weather',
@@ -148,33 +154,34 @@ const T = {
     local: 'Local Life',
     fun: 'Fun',
     featured: 'POPULAR',
-    trending: 'Trending Markets',
+    trending: 'Trending Forecasts',
     open: 'open',
     endsIn: 'Ends in',
     participants: 'participants',
-    predictors: 'predictors',
-    ptsStaked: 'PTS staked',
+    predictors: 'forecasters',
+    ptsStaked: 'PTS allocated',
     youPredicted: 'You predicted',
-    stackedBets: 'active stakes',
+    stackedBets: 'active prediction(s)',
     with: 'with',
-    bullish: 'Bullish',
-    bearish: 'Bearish',
+    bullish: 'YES lean',
+    bearish: 'NO lean',
     predictYes: 'Predict YES',
     predictNo: 'Predict NO',
-    totalStaked: 'Total Staked',
-    potentialWin: 'Potential Win',
+    totalStaked: 'TOTAL ALLOCATED',
+    potentialWin: 'Potential Reward',
     accuracy: 'Accuracy',
-    active: 'Active',
-    settled: 'Settled',
-    noActive: 'No active bets. Stake on a market to see it here.',
-    noSettled: 'No settled bets yet. Use Simulate controls on Active bets.',
-    staked: 'Staked',
-    potentialReturn: 'Potential return',
-    payout: 'Payout',
-    resolveTitle: 'Resolution Simulator',
-    resolveHint: 'Demo control — settle this market as YES or NO wins.',
-    simYes: 'Simulate YES Win',
-    simNo: 'Simulate NO Win',
+    active: 'Active Predictions',
+    settled: 'Resolved Predictions',
+    noActive: 'No active predictions. Allocate points on a market to see it here.',
+    noSettled:
+      'No resolved predictions yet. Use the simulator on Active Predictions.',
+    staked: 'ALLOCATED',
+    potentialReturn: 'Potential reward',
+    payout: 'Reward',
+    resolveTitle: 'Outcome Simulator',
+    resolveHint: 'Demo control — resolve this market as YES or NO correct.',
+    simYes: 'Simulate Correct: YES',
+    simNo: 'Simulate Correct: NO',
     marketResolved: 'Market Resolved!',
     rankings: 'Local Rankings',
     rankingsSub: 'Rankings based on total accumulated PTS.',
@@ -183,13 +190,13 @@ const T = {
     lbAcc: '🎯 Accuracy (% Acc)',
     lbPts: '💰 Total Points (PTS)',
     you: 'You',
-    stakeAmount: 'STAKE AMOUNT',
+    stakeAmount: 'POINTS ALLOCATED',
     available: 'Available',
-    predicting: 'Predicting',
-    winPlus: 'Win',
-    returnIf: 'Return',
-    ifCorrect: 'PTS if correct',
-    confirm: 'Confirm Prediction',
+    predicting: 'Forecasting',
+    winPlus: 'Reward:',
+    returnIf: 'Total Return:',
+    ifCorrect: 'PTS',
+    confirm: 'Submit Prediction',
     cancel: 'Cancel',
     insufficient: 'Insufficient PTS balance',
     account: 'Account',
@@ -199,11 +206,11 @@ const T = {
     login: 'Load / Create Account',
     close: 'Close',
     pts: 'PTS',
-    win: 'WIN',
-    loss: 'LOSS',
-    locked: 'Locked',
-    potential: 'potential',
-    credited: 'credited to your balance',
+    win: 'CORRECT',
+    loss: 'INCORRECT',
+    locked: 'Allocated',
+    potential: 'reward',
+    credited: 'added to your balance',
     langToggle: 'EN / 中文',
     acc: 'Acc',
     redeem: '🎁 Redeem',
@@ -213,6 +220,7 @@ const T = {
     redeemed: 'Redeemed!',
     notEnoughPts: 'Not enough PTS',
     maxPreset: 'MAX',
+    scale: 'Scale',
   },
   zh: {
     brand: 'RightPick',
@@ -225,51 +233,51 @@ const T = {
     weather: '天氣',
     transit: '交通',
     economy: '經濟',
-    local: '本地社區',
-    fun: '趣味',
+    local: '本地區域',
+    fun: '娛樂',
     featured: '熱門',
-    trending: '熱門市場',
+    trending: '熱門預測',
     open: '個開放中',
     endsIn: '剩餘',
     participants: '位參與者',
     predictors: '位預測者',
-    ptsStaked: 'PTS 已押注',
+    ptsStaked: 'PTS 已分配',
     youPredicted: '你已預測',
-    stackedBets: '筆進行中押注',
-    with: '押注',
-    bullish: '看漲',
-    bearish: '看跌',
+    stackedBets: '個進行中預測',
+    with: '分配',
+    bullish: '傾向 YES',
+    bearish: '傾向 NO',
     predictYes: '預測 YES',
     predictNo: '預測 NO',
-    totalStaked: '總押注',
-    potentialWin: '潛在回報',
+    totalStaked: '總分配點數',
+    potentialWin: '潛在獎勵',
     accuracy: '準確率',
-    active: '進行中',
-    settled: '已結算',
-    noActive: '尚無進行中的預測。請先在市場押注。',
-    noSettled: '尚無已結算預測。請在進行中使用模擬結算。',
-    staked: '已押注',
-    potentialReturn: '潛在回報',
-    payout: '派彩',
-    resolveTitle: '結算模擬器',
-    resolveHint: '示範控制 — 將此市場結算為 YES 或 NO 勝出。',
-    simYes: '模擬 YES 勝出',
-    simNo: '模擬 NO 勝出',
+    active: '進行中預測',
+    settled: '已結算預測',
+    noActive: '尚無進行中的預測。請先在市場分配點數。',
+    noSettled: '尚無已結算預測。請在進行中使用結果模擬器。',
+    staked: '已分配',
+    potentialReturn: '潛在獎勵',
+    payout: '獎勵',
+    resolveTitle: '結果模擬器',
+    resolveHint: '示範控制 — 將此市場結算為 YES 或 NO 正確。',
+    simYes: '模擬正確：YES',
+    simNo: '模擬正確：NO',
     marketResolved: '市場已結算！',
     rankings: '本地排行榜',
     rankingsSub: '排名按累積 PTS 總額計算。',
     rankingsSubAcc: '排名按預測準確率計算。',
     rankingsSubPts: '排名按累積 PTS 總額計算。',
     lbAcc: '🎯 準確率 (% Acc)',
-    lbPts: '💰 總點數 (PTS)',
+    lbPts: '💰 總積分 (PTS)',
     you: '你',
-    stakeAmount: '押注金額',
+    stakeAmount: '分配點數',
     available: '可用餘額',
     predicting: '預測方向',
-    winPlus: '可贏',
-    returnIf: '若正確可獲',
+    winPlus: '獎勵：',
+    returnIf: '合計回報：',
     ifCorrect: 'PTS',
-    confirm: '確認預測',
+    confirm: '提交預測',
     cancel: '取消',
     insufficient: '點數餘額不足',
     account: '帳戶',
@@ -279,20 +287,21 @@ const T = {
     login: '載入／建立帳戶',
     close: '關閉',
     pts: 'PTS',
-    win: '勝出',
-    loss: '落敗',
-    locked: '已鎖定',
-    potential: '潛在',
-    credited: '已存入餘額',
+    win: '正確',
+    loss: '不正確',
+    locked: '已分配',
+    potential: '獎勵',
+    credited: '已加入餘額',
     langToggle: 'EN / 中文',
     acc: '準確率',
     redeem: '🎁 兌換',
-    shopTitle: '獎勵商店',
-    shopSub: '用 PTS 兌換本地福利（示範）。',
+    shopTitle: '積分兌換',
+    shopSub: '使用點數兌換在地獎勵優惠',
     redeemBtn: '兌換',
     redeemed: '兌換成功！',
     notEnoughPts: 'PTS 不足',
     maxPreset: 'MAX',
+    scale: '倍率',
   },
 } as const;
 
@@ -323,8 +332,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '🌀',
     titleEn: 'Will HKO issue a T8 Typhoon Signal before August 15, 2026?',
     titleZh: '天文台會否在 2026 年 8 月 15 日前發出八號風球？',
-    endsInEn: '15 days',
-    endsInZh: '15 天',
+    endsAt: '2026-08-15',
     participants: 1420,
     ptsStaked: 45200,
     yesPct: 68,
@@ -338,8 +346,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '📈',
     titleEn: 'Will Centa-City Leading Index (CCL) hit 140 this quarter?',
     titleZh: '中原城市領先指數 (CCL) 本季會否升至 140？',
-    endsInEn: '42 days',
-    endsInZh: '42 天',
+    endsAt: '2026-09-23',
     participants: 890,
     ptsStaked: 28400,
     yesPct: 41,
@@ -352,8 +359,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '🚇',
     titleEn: 'Will MTR Kwu Tung Station civil construction meet 2027 targets?',
     titleZh: '港鐵古洞站土木工程會否於 2027 年達標？',
-    endsInEn: '90 days',
-    endsInZh: '90 天',
+    endsAt: '2026-11-10',
     participants: 654,
     ptsStaked: 19800,
     yesPct: 82,
@@ -366,8 +372,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '✈️',
     titleEn: 'Will HK Tourism Board report over 4M arrivals this month?',
     titleZh: '旅發局本月會否公布超過 400 萬訪港人次？',
-    endsInEn: '12 days',
-    endsInZh: '12 天',
+    endsAt: '2026-08-24',
     participants: 1120,
     ptsStaked: 33100,
     yesPct: 64,
@@ -381,8 +386,7 @@ const INITIAL_MARKETS: Market[] = [
     titleEn:
       'Will a major overseas retail chain announce a Causeway Bay flagship next month?',
     titleZh: '下月會否有大型海外零售品牌宣布進駐銅鑼灣旗艦店？',
-    endsInEn: '28 days',
-    endsInZh: '28 天',
+    endsAt: '2026-09-09',
     participants: 732,
     ptsStaked: 15600,
     yesPct: 51,
@@ -395,8 +399,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '🌧️',
     titleEn: 'Will HKO issue a Black Rainstorm Warning this week?',
     titleZh: '天文台本週會否發出黑色暴雨警告？',
-    endsInEn: '4 days',
-    endsInZh: '4 天',
+    endsAt: '2026-08-16',
     participants: 2104,
     ptsStaked: 52300,
     yesPct: 37,
@@ -409,8 +412,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '⛴️',
     titleEn: 'Will Star Ferry report >10% delay rate this weekend?',
     titleZh: '天星小輪本週末延誤率會否超過 10%？',
-    endsInEn: '3 days',
-    endsInZh: '3 天',
+    endsAt: '2026-08-15',
     participants: 418,
     ptsStaked: 9200,
     yesPct: 29,
@@ -424,8 +426,7 @@ const INITIAL_MARKETS: Market[] = [
     titleEn:
       'Will milk tea prices at local cha chaan tengs cross $30 this year?',
     titleZh: '今年本地茶餐廳奶茶會否突破 $30？',
-    endsInEn: '120 days',
-    endsInZh: '120 天',
+    endsAt: '2026-12-10',
     participants: 2860,
     ptsStaked: 61400,
     yesPct: 73,
@@ -438,8 +439,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '🐗',
     titleEn: 'Will a wild boar be spotted near a MTR entrance this week?',
     titleZh: '本週會否有野豬在港鐵站入口附近出沒？',
-    endsInEn: '6 days',
-    endsInZh: '6 天',
+    endsAt: '2026-08-18',
     participants: 1942,
     ptsStaked: 42800,
     yesPct: 44,
@@ -452,8 +452,7 @@ const INITIAL_MARKETS: Market[] = [
     emoji: '📚',
     titleEn: 'Will library seats be 100% full before 8:30 AM tomorrow?',
     titleZh: '明日早上 8:30 前圖書館座位會否全滿？',
-    endsInEn: '1 day',
-    endsInZh: '1 天',
+    endsAt: '2026-08-13',
     participants: 3210,
     ptsStaked: 55200,
     yesPct: 81,
@@ -467,8 +466,7 @@ const INITIAL_MARKETS: Market[] = [
     titleEn:
       'Will someone queue 30+ minutes for a new bubble-tea drop in Central?',
     titleZh: '中環新出爐手搖飲會否有人排隊超過 30 分鐘？',
-    endsInEn: '5 days',
-    endsInZh: '5 天',
+    endsAt: '2026-08-17',
     participants: 1675,
     ptsStaked: 28900,
     yesPct: 66,
@@ -484,8 +482,7 @@ const defaultPredictions = (): UserPrediction[] => [
     titleEn: 'Will HK Tourism Board report over 4M arrivals this month?',
     titleZh: '旅發局本月會否公布超過 400 萬訪港人次？',
     emoji: '✈️',
-    endsInEn: '12 days',
-    endsInZh: '12 天',
+    endsAt: '2026-08-24',
     side: 'YES',
     stake: 150,
     odds: 1.5,
@@ -499,8 +496,7 @@ const defaultPredictions = (): UserPrediction[] => [
     titleEn: 'Will MTR Kwu Tung Station civil construction meet 2027 targets?',
     titleZh: '港鐵古洞站土木工程會否於 2027 年達標？',
     emoji: '🚇',
-    endsInEn: '90 days',
-    endsInZh: '90 天',
+    endsAt: '2026-11-10',
     side: 'YES',
     stake: 200,
     odds: 1.2,
@@ -514,8 +510,7 @@ const defaultPredictions = (): UserPrediction[] => [
     titleEn: 'Will HKO issue a T3 Signal during last weekend?',
     titleZh: '上週末天文台有否發出三號風球？',
     emoji: '🌀',
-    endsInEn: 'Settled',
-    endsInZh: '已結算',
+    endsAt: '2026-08-01',
     side: 'YES',
     stake: 200,
     odds: 1.6,
@@ -531,8 +526,7 @@ const defaultPredictions = (): UserPrediction[] => [
     titleEn: 'Will Star Ferry cancel evening sailings last Friday?',
     titleZh: '上週五天星小輪有否取消晚間航班？',
     emoji: '⛴️',
-    endsInEn: 'Settled',
-    endsInZh: '已結算',
+    endsAt: '2026-07-31',
     side: 'NO',
     stake: 100,
     odds: 1.5,
@@ -548,8 +542,7 @@ const defaultPredictions = (): UserPrediction[] => [
     titleEn: 'Will a new flagship open in Mong Kok this quarter?',
     titleZh: '本季旺角會否有新旗艦店開幕？',
     emoji: '🛍️',
-    endsInEn: 'Settled',
-    endsInZh: '已結算',
+    endsAt: '2026-07-20',
     side: 'YES',
     stake: 120,
     odds: 2.0,
@@ -635,14 +628,14 @@ const REWARDS: RewardItem[] = [
     id: 'coffee-10',
     emoji: '☕',
     titleEn: '$10 Coffee Coupon',
-    titleZh: '$10 咖啡券',
+    titleZh: '$10 咖啡優惠券',
     cost: 1000,
   },
   {
     id: 'super-20',
     emoji: '🛒',
     titleEn: 'HKD $20 Supermarket Coupon',
-    titleZh: '港幣 $20 超市現金券',
+    titleZh: '港幣 $20 超市優惠券',
     cost: 2000,
   },
   {
@@ -663,6 +656,20 @@ const REWARDS: RewardItem[] = [
 
 const fmt = (n: number) => Math.round(n).toLocaleString('en-HK');
 
+function daysRemaining(endsAt: string, now = new Date()): number {
+  const [y, m, d] = endsAt.split('-').map(Number);
+  const endUtc = Date.UTC(y, m - 1, d);
+  const nowUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+  return Math.ceil((endUtc - nowUtc) / (1000 * 60 * 60 * 24));
+}
+
+function formatEndsIn(endsAt: string, lang: Lang, now = new Date()): string {
+  const days = daysRemaining(endsAt, now);
+  if (days <= 0) return lang === 'zh' ? '已結束' : 'Ended';
+  if (days === 1) return lang === 'zh' ? '1 天' : '1 day';
+  return lang === 'zh' ? `${days} 天` : `${days} days`;
+}
+
 function calcAccuracy(predictions: UserPrediction[]) {
   const settled = predictions.filter((p) => p.status === 'SETTLED');
   if (!settled.length) return 0;
@@ -681,6 +688,44 @@ function activeStakesFor(preds: UserPrediction[], marketId: string) {
 
 function totalActiveStake(preds: UserPrediction[], marketId: string) {
   return activeStakesFor(preds, marketId).reduce((s, p) => s + p.stake, 0);
+}
+
+function normalizePrediction(raw: UserPrediction & {
+  endsInEn?: string;
+  endsInZh?: string;
+}): UserPrediction {
+  const market = INITIAL_MARKETS.find((m) => m.id === raw.marketId);
+  return {
+    id: raw.id,
+    marketId: raw.marketId,
+    titleEn: raw.titleEn,
+    titleZh: raw.titleZh,
+    emoji: raw.emoji,
+    endsAt: raw.endsAt || market?.endsAt || '2026-08-15',
+    side: raw.side,
+    stake: raw.stake,
+    odds: raw.odds,
+    potentialPayout: raw.potentialPayout,
+    timestamp: raw.timestamp,
+    status: raw.status,
+    result: raw.result,
+    settledPnl: raw.settledPnl,
+  };
+}
+
+function normalizeAccounts(
+  accounts: Record<string, AccountData>,
+): Record<string, AccountData> {
+  const next: Record<string, AccountData> = {};
+  for (const [name, data] of Object.entries(accounts)) {
+    next[name] = {
+      points: data.points,
+      predictions: (data.predictions ?? []).map((p) =>
+        normalizePrediction(p as UserPrediction & { endsInEn?: string }),
+      ),
+    };
+  }
+  return next;
 }
 
 function defaultAccount(): AccountData {
@@ -884,8 +929,24 @@ function RightPickApp() {
 
   const titleOf = (m: { titleEn: string; titleZh: string }) =>
     lang === 'zh' ? m.titleZh : m.titleEn;
-  const endsOf = (m: { endsInEn: string; endsInZh: string }) =>
-    lang === 'zh' ? m.endsInZh : m.endsInEn;
+  const endsOf = (m: { endsAt?: string; status?: Status }) => {
+    if (m.status === 'SETTLED') return lang === 'zh' ? '已結算' : 'Settled';
+    if (!m.endsAt) return '—';
+    return formatEndsIn(m.endsAt, lang);
+  };
+  const catTagOf = (id: Exclude<CategoryId, 'all'>) => {
+    if (lang === 'zh') {
+      const map = {
+        weather: t.weather,
+        transit: t.transit,
+        economy: t.economy,
+        local: t.local,
+        fun: t.fun,
+      } as const;
+      return map[id];
+    }
+    return id.toUpperCase();
+  };
 
   const accuracy = useMemo(() => calcAccuracy(predictions), [predictions]);
 
@@ -925,10 +986,11 @@ function RightPickApp() {
         if (raw) {
           const parsed = JSON.parse(raw) as PersistBlob;
           if (parsed.accounts && parsed.currentUser) {
-            const accounts =
+            const accounts = normalizeAccounts(
               alreadyReset === '1'
                 ? parsed.accounts
-                : resetAccountPoints(parsed.accounts);
+                : resetAccountPoints(parsed.accounts),
+            );
             setAccounts(accounts);
             setCurrentUser(parsed.currentUser);
             setLang(parsed.lang === 'zh' ? 'zh' : 'en');
@@ -1045,8 +1107,7 @@ function RightPickApp() {
       titleEn: modalMarket.titleEn,
       titleZh: modalMarket.titleZh,
       emoji: modalMarket.emoji,
-      endsInEn: modalMarket.endsInEn,
-      endsInZh: modalMarket.endsInZh,
+      endsAt: modalMarket.endsAt,
       side: modalSide,
       stake,
       odds,
@@ -1093,8 +1154,6 @@ function RightPickApp() {
               status: 'SETTLED' as const,
               result: (won ? 'WIN' : 'LOSS') as Result,
               settledPnl: pnl,
-              endsInEn: 'Settled',
-              endsInZh: '已結算',
             }
           : p,
       ),
@@ -1286,8 +1345,7 @@ function RightPickApp() {
                 <Text style={styles.featuredBadgeText}>🔥 {t.featured}</Text>
               </View>
               <Text style={styles.catTag}>
-                {featured.emoji}{' '}
-                {categories.find((c) => c.id === featured.category)?.label}
+                {featured.emoji} {catTagOf(featured.category)}
               </Text>
             </View>
             <Text style={[styles.heroTitle, isWide && { fontSize: 28 }]}>
@@ -1314,7 +1372,7 @@ function RightPickApp() {
                 </View>
               );
             })()}
-            <Text style={styles.meta}>
+            <Text style={[styles.meta, styles.metaStats]}>
               {t.endsIn} {endsOf(featured)} · {fmt(featured.participants)}{' '}
               {t.participants} · {fmt(featured.ptsStaked)} {t.ptsStaked}
             </Text>
@@ -1330,7 +1388,7 @@ function RightPickApp() {
                   {t.bullish}
                 </Text>
                 <Text style={[styles.ctaText, { color: C.yes }]}>
-                  {t.predictYes} · {featured.yesOdds}x
+                  {t.predictYes} · {t.scale} {featured.yesOdds}x
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -1341,7 +1399,7 @@ function RightPickApp() {
                   {t.bearish}
                 </Text>
                 <Text style={[styles.ctaText, { color: C.no }]}>
-                  {t.predictNo} · {featured.noOdds}x
+                  {t.predictNo} · {t.scale} {featured.noOdds}x
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1379,7 +1437,7 @@ function RightPickApp() {
               <View style={styles.cardTop}>
                 <View style={styles.catPill}>
                   <Text style={styles.catPillText}>
-                    {m.emoji} {m.category.toUpperCase()}
+                    {m.emoji} {catTagOf(m.category)}
                   </Text>
                 </View>
                 <Text style={styles.ends}>
@@ -1405,9 +1463,9 @@ function RightPickApp() {
                   </Text>
                 </View>
               ) : null}
-              <Text style={styles.meta}>
+              <Text style={[styles.meta, styles.metaStats]}>
                 {fmt(m.participants)} {t.predictors} · {fmt(m.ptsStaked)}{' '}
-                {t.pts}
+                {t.ptsStaked}
               </Text>
               <ProbabilityBar yesPct={m.yesPct} />
               <View style={styles.rowGap}>
@@ -1415,13 +1473,17 @@ function RightPickApp() {
                   style={styles.yesOutline}
                   onPress={() => openStake(m, 'YES')}
                 >
-                  <Text style={styles.yesOutlineText}>YES {m.yesOdds}x</Text>
+                  <Text style={styles.yesOutlineText}>
+                    {t.predictYes} · {t.scale} {m.yesOdds}x
+                  </Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.noOutline}
                   onPress={() => openStake(m, 'NO')}
                 >
-                  <Text style={styles.noOutlineText}>NO {m.noOdds}x</Text>
+                  <Text style={styles.noOutlineText}>
+                    {t.predictNo} · {t.scale} {m.noOdds}x
+                  </Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -1431,7 +1493,7 @@ function RightPickApp() {
     </ScrollView>
   );
 
-  /* ── My Bets ── */
+  /* ── My Predictions ── */
   const renderBets = () => {
     const list = betsSegment === 'active' ? activeBets : settledBets;
     return (
@@ -1522,7 +1584,7 @@ function RightPickApp() {
                       fontSize: 12,
                     }}
                   >
-                    {p.emoji} {p.side} · {p.odds}x
+                    {p.emoji} {p.side} · {t.scale} {p.odds}x
                   </Text>
                 </View>
                 {p.status === 'ACTIVE' ? (
@@ -1815,7 +1877,7 @@ function RightPickApp() {
               ]}
             >
               <Text style={styles.outcomeBadgeText}>
-                {t.predicting} {modalSide} @ {odds}x
+                {t.predicting} {modalSide} · {t.scale} {odds}x
               </Text>
             </View>
             <Text style={styles.modalTitle} numberOfLines={2}>
@@ -1903,11 +1965,11 @@ function RightPickApp() {
             ) : null}
             <View style={styles.calcBox}>
               <Text style={styles.calcMain}>
-                {t.winPlus} +{fmt(Math.max(0, Math.round(stake * (odds - 1))))}{' '}
-                {t.pts}
+                {t.winPlus} +
+                {fmt(Math.max(0, Math.round(stake * (odds - 1))))} {t.pts}
               </Text>
               <Text style={styles.meta}>
-                {t.returnIf} {fmt(Math.round(stake * odds))} {t.ifCorrect}
+                {t.returnIf} {fmt(Math.round(stake * odds))} {t.pts}
               </Text>
             </View>
             <TouchableOpacity
@@ -2017,8 +2079,8 @@ function RightPickApp() {
           onPress={() => setShopOpen(false)}
         />
         <View style={[styles.modalCard, { width: Math.min(width * 0.92, 440) }]}>
-          <Text style={styles.accountModalTitle}>{t.shopTitle}</Text>
-          <Text style={[styles.meta, { textAlign: 'center', marginBottom: 4 }]}>
+          <Text style={styles.shopModalTitle}>{t.shopTitle}</Text>
+          <Text style={[styles.meta, styles.shopSub, { textAlign: 'center' }]}>
             {t.shopSub}
           </Text>
           <Text style={styles.shopBalance}>
@@ -2214,9 +2276,10 @@ const styles = StyleSheet.create({
   },
   brandUser: {
     color: C.label,
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '600',
     marginTop: 1,
+    ...cjkFont,
   },
   headerActions: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
   redeemBtn: {
@@ -2224,28 +2287,46 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: C.violetHot,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  redeemBtnText: { color: C.white, fontWeight: '800', fontSize: 12 },
+  redeemBtnText: {
+    color: C.white,
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: 0.3,
+    ...cjkFont,
+  },
   langBtn: {
     backgroundColor: C.surfaceAlt,
     borderWidth: 1,
     borderColor: C.borderMuted,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  langText: { color: C.cyan, fontWeight: '700', fontSize: 12 },
+  langText: {
+    color: C.cyan,
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: 0.2,
+    ...cjkFont,
+  },
   accountBtn: {
     backgroundColor: C.violetDim,
     borderWidth: 1,
     borderColor: C.violetBorder,
     borderRadius: 999,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
   },
-  accountBtnText: { color: C.violet, fontWeight: '800', fontSize: 12 },
+  accountBtnText: {
+    color: C.violet,
+    fontWeight: '600',
+    fontSize: 13,
+    letterSpacing: 0.3,
+    ...cjkFont,
+  },
   pills: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   statPill: {
     flexGrow: 1,
@@ -2255,7 +2336,7 @@ const styles = StyleSheet.create({
     borderColor: C.borderMuted,
     borderRadius: 14,
     paddingHorizontal: 14,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   statPillActive: {
     borderWidth: 2,
@@ -2269,22 +2350,37 @@ const styles = StyleSheet.create({
   },
   pillLabel: {
     color: C.label,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 1,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.8,
+    ...cjkFont,
   },
   pillValueRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 4,
+    marginTop: 6,
     gap: 8,
+    minHeight: 22,
   },
-  balanceValue: { color: C.white, fontWeight: '800', fontSize: 16 },
-  standingValue: { color: C.white, fontWeight: '700', fontSize: 14 },
+  balanceValue: {
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 16,
+    lineHeight: 22,
+    ...cjkFont,
+  },
+  standingValue: {
+    color: C.white,
+    fontWeight: '600',
+    fontSize: 14,
+    lineHeight: 22,
+    ...cjkFont,
+  },
   spark: {
     flexDirection: 'row',
     alignItems: 'flex-end',
+    alignSelf: 'center',
     gap: 2,
     height: 14,
   },
@@ -2309,8 +2405,13 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 0 },
   },
-  chipText: { color: C.muted, fontWeight: '700', fontSize: 13 },
-  chipTextOn: { color: C.violet, fontWeight: '800' },
+  chipText: {
+    color: C.muted,
+    fontWeight: '600',
+    fontSize: 13,
+    ...cjkFont,
+  },
+  chipTextOn: { color: C.violet, fontWeight: '700' },
   hero: {
     backgroundColor: C.surface,
     borderRadius: 22,
@@ -2340,27 +2441,40 @@ const styles = StyleSheet.create({
   },
   featuredBadgeText: {
     color: C.white,
-    fontWeight: '800',
-    fontSize: 11,
-    letterSpacing: 0.8,
+    fontWeight: '700',
+    fontSize: 12,
+    letterSpacing: 0.6,
+    ...cjkFont,
   },
-  catTag: { color: C.cyan, fontWeight: '700', fontSize: 12 },
+  catTag: { color: C.cyan, fontWeight: '600', fontSize: 13, ...cjkFont },
   heroTitle: {
     color: C.white,
     fontSize: 22,
-    fontWeight: '800',
+    fontWeight: '700',
     lineHeight: 30,
     letterSpacing: -0.2,
+    ...cjkFont,
   },
   heroActions: { gap: 10, marginTop: 2 },
-  sectionTitle: { color: C.white, fontSize: 19, fontWeight: '800' },
+  sectionTitle: {
+    color: C.white,
+    fontSize: 19,
+    fontWeight: '700',
+    ...cjkFont,
+  },
   sectionSub: {
     color: C.mutedSoft,
-    fontSize: 12,
+    fontSize: 13,
     marginTop: 3,
-    fontWeight: '600',
+    fontWeight: '500',
+    ...cjkFont,
   },
-  sectionCount: { color: C.label, fontWeight: '700', fontSize: 12 },
+  sectionCount: {
+    color: C.label,
+    fontWeight: '600',
+    fontSize: 13,
+    ...cjkFont,
+  },
   card: {
     backgroundColor: C.surface,
     borderRadius: 18,
@@ -2386,18 +2500,35 @@ const styles = StyleSheet.create({
   },
   catPillText: {
     color: C.label,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.5,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.4,
+    ...cjkFont,
   },
-  ends: { color: C.mutedSoft, fontSize: 12, fontWeight: '600' },
+  ends: {
+    color: C.mutedSoft,
+    fontSize: 12,
+    fontWeight: '500',
+    ...cjkFont,
+  },
   cardTitle: {
     color: C.white,
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '600',
     lineHeight: 22,
+    ...cjkFont,
   },
-  meta: { color: C.muted, fontSize: 12, lineHeight: 17 },
+  meta: {
+    color: C.muted,
+    fontSize: 12,
+    lineHeight: 17,
+    fontWeight: '500',
+    ...cjkFont,
+  },
+  metaStats: {
+    lineHeight: 19,
+    marginBottom: 2,
+  },
   stakeBadge: {
     alignSelf: 'flex-start',
     backgroundColor: C.yesDim,
@@ -2408,10 +2539,25 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   stakeBadgeNo: { backgroundColor: C.noDim, borderColor: C.noBorder },
-  stakeBadgeText: { color: C.yes, fontWeight: '700', fontSize: 11 },
+  stakeBadgeText: {
+    color: C.yes,
+    fontWeight: '600',
+    fontSize: 12,
+    ...cjkFont,
+  },
   barLabels: { flexDirection: 'row', justifyContent: 'space-between' },
-  yesLabel: { color: C.yes, fontWeight: '800', fontSize: 12 },
-  noLabel: { color: C.no, fontWeight: '800', fontSize: 12 },
+  yesLabel: {
+    color: C.yes,
+    fontWeight: '700',
+    fontSize: 12,
+    ...cjkFont,
+  },
+  noLabel: {
+    color: C.no,
+    fontWeight: '700',
+    fontSize: 12,
+    ...cjkFont,
+  },
   barTrack: {
     flexDirection: 'row',
     borderRadius: 999,
@@ -2442,10 +2588,11 @@ const styles = StyleSheet.create({
   },
   ctaEyebrow: {
     color: C.muted,
-    fontSize: 10,
-    fontWeight: '700',
-    letterSpacing: 0.7,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
+    ...cjkFont,
   },
   ctaText: { color: C.white, fontWeight: '800', fontSize: 14 },
   yesOutline: {
@@ -2466,8 +2613,18 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     alignItems: 'center',
   },
-  yesOutlineText: { color: C.yes, fontWeight: '800' },
-  noOutlineText: { color: C.no, fontWeight: '800' },
+  yesOutlineText: {
+    color: C.yes,
+    fontWeight: '700',
+    fontSize: 13,
+    ...cjkFont,
+  },
+  noOutlineText: {
+    color: C.no,
+    fontWeight: '700',
+    fontSize: 13,
+    ...cjkFont,
+  },
   summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginTop: 14 },
   metricCard: {
     flexGrow: 1,
@@ -2481,10 +2638,11 @@ const styles = StyleSheet.create({
   },
   summaryLabel: {
     color: C.label,
-    fontSize: 10,
-    fontWeight: '800',
-    letterSpacing: 0.7,
+    fontSize: 12,
+    fontWeight: '600',
+    letterSpacing: 0.5,
     textTransform: 'uppercase',
+    ...cjkFont,
   },
   summaryValue: { color: C.white, fontSize: 18, fontWeight: '800' },
   segment: {
@@ -2505,8 +2663,13 @@ const styles = StyleSheet.create({
   segmentOn: {
     backgroundColor: C.violetHot,
   },
-  segmentText: { color: C.muted, fontWeight: '700', fontSize: 12 },
-  segmentTextOn: { color: C.white, fontWeight: '800' },
+  segmentText: {
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '600',
+    fontSize: 12,
+    ...cjkFont,
+  },
+  segmentTextOn: { color: C.white, fontWeight: '700' },
   lbSegment: {
     flexDirection: 'row',
     backgroundColor: 'rgba(18, 15, 37, 0.85)',
@@ -2529,14 +2692,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(138, 92, 246, 0.2)',
   },
   lbSegmentText: {
-    color: '#94A3B8',
-    fontWeight: '700',
-    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontWeight: '600',
+    fontSize: 12,
     textAlign: 'center',
+    ...cjkFont,
   },
   lbSegmentTextOn: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    fontWeight: '700',
   },
   empty: {
     color: C.muted,
@@ -2572,9 +2736,10 @@ const styles = StyleSheet.create({
   statsRow: { flexDirection: 'row', gap: 22 },
   statLabel: {
     color: C.mutedSoft,
-    fontSize: 10,
-    fontWeight: '700',
+    fontSize: 12,
+    fontWeight: '600',
     textTransform: 'uppercase',
+    ...cjkFont,
   },
   statValue: { color: C.text, fontWeight: '700', fontSize: 14, marginTop: 3 },
   resolveBox: {
@@ -2585,8 +2750,19 @@ const styles = StyleSheet.create({
     padding: 12,
     gap: 7,
   },
-  resolveTitle: { color: C.text, fontWeight: '800', fontSize: 12 },
-  resolveHint: { color: C.muted, fontSize: 11, marginBottom: 2 },
+  resolveTitle: {
+    color: C.text,
+    fontWeight: '700',
+    fontSize: 13,
+    ...cjkFont,
+  },
+  resolveHint: {
+    color: C.muted,
+    fontSize: 12,
+    marginBottom: 2,
+    fontWeight: '500',
+    ...cjkFont,
+  },
   simYes: {
     flex: 1,
     backgroundColor: C.yesDim,
@@ -2605,7 +2781,12 @@ const styles = StyleSheet.create({
     paddingVertical: 11,
     alignItems: 'center',
   },
-  simText: { color: C.white, fontWeight: '800', fontSize: 12 },
+  simText: {
+    color: C.white,
+    fontWeight: '700',
+    fontSize: 12,
+    ...cjkFont,
+  },
   podium: { gap: 10, marginBottom: 12 },
   podiumCard: {
     flex: 1,
@@ -2641,7 +2822,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 9,
     paddingVertical: 3,
   },
-  badgeText: { color: C.cyan, fontSize: 10, fontWeight: '700' },
+  badgeText: {
+    color: C.cyan,
+    fontSize: 12,
+    fontWeight: '600',
+    ...cjkFont,
+  },
   leaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -2674,7 +2860,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(138, 92, 246, 0.2)',
     backgroundColor: 'rgba(18, 15, 37, 0.85)',
     paddingHorizontal: 6,
-    paddingVertical: 4,
+    paddingVertical: 6,
     gap: 4,
     shadowColor: '#000',
     shadowOpacity: 0.45,
@@ -2687,7 +2873,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 3,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 6,
     borderRadius: 22,
   },
@@ -2706,14 +2892,15 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 0 },
   },
   tabLabel: {
-    color: '#64748B',
-    fontSize: 10,
-    fontWeight: '700',
+    color: 'rgba(255, 255, 255, 0.7)',
+    fontSize: 12,
+    fontWeight: '600',
     letterSpacing: 0.2,
+    ...cjkFont,
   },
   tabLabelOn: {
     color: '#FFFFFF',
-    fontWeight: '800',
+    fontWeight: '700',
   },
   modalRoot: {
     flex: 1,
@@ -2759,11 +2946,12 @@ const styles = StyleSheet.create({
   },
   modalKicker: {
     color: C.white,
-    fontSize: 11,
-    fontWeight: '800',
-    letterSpacing: 1.3,
+    fontSize: 13,
+    fontWeight: '700',
+    letterSpacing: 1.0,
     marginTop: 6,
     textTransform: 'uppercase',
+    ...cjkFont,
   },
   modalStake: {
     color: C.white,
@@ -2892,6 +3080,21 @@ const styles = StyleSheet.create({
     marginTop: 4,
     marginBottom: 4,
     textAlign: 'center',
+    ...cjkFont,
+  },
+  shopModalTitle: {
+    color: '#FFFFFF',
+    fontSize: 20,
+    fontWeight: '700',
+    letterSpacing: 0.6,
+    marginTop: 4,
+    marginBottom: 4,
+    textAlign: 'center',
+    ...cjkFont,
+  },
+  shopSub: {
+    marginBottom: 6,
+    lineHeight: 19,
   },
   accountFieldLabel: {
     color: '#A78BFA',
